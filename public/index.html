@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f4f0">
+    <meta name="description" content="A money movement ledger you can prove.">
+    <title>LedgerLine — Money, accounted for.</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <a class="brand" href="/" aria-label="LedgerLine home">
+          <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+          <span>ledger<span class="brand-light">line</span></span>
+        </a>
+        <div class="workspace-label">WORKSPACE</div>
+        <nav class="navigation" aria-label="Main navigation">
+          <button class="nav-link active" data-view="overview"><span class="nav-icon">⌂</span> Overview</button>
+          <button class="nav-link" data-view="accounts"><span class="nav-icon">▤</span> Accounts</button>
+          <button class="nav-link" data-view="activity"><span class="nav-icon">↗</span> Activity <span class="nav-count" id="activity-count">0</span></button>
+          <button class="nav-link role-admin-only role-auditor-only" data-view="audit"><span class="nav-icon">◎</span> Audit trail</button>
+        </nav>
+        <div class="sidebar-bottom">
+          <div class="system-card">
+            <span class="pulse-dot"></span>
+            <div><strong>Ledger integrity</strong><small>All books in balance</small></div>
+            <span class="integrity-check">✓</span>
+          </div>
+          <div class="user-chip">
+            <div class="avatar" id="user-avatar">LL</div>
+            <div class="user-copy"><strong id="user-name">Loading…</strong><small id="user-role">Account</small></div>
+            <button id="logout-button" class="icon-button" title="Sign out" aria-label="Sign out">↗</button>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar">
+          <div class="breadcrumb"><span>Workspace</span><span class="crumb-separator">/</span><strong id="breadcrumb-current">Overview</strong></div>
+          <div class="topbar-right">
+            <span class="secure-label"><span>⌑</span> Secure session</span>
+            <span class="topbar-divider"></span>
+            <span id="today-label" class="date-label"></span>
+          </div>
+        </header>
+
+        <div id="toast" class="toast" role="status" aria-live="polite"></div>
+        <div id="loading-state" class="loading-state"><span class="spinner"></span> Preparing your ledger…</div>
+
+        <section id="login-view" class="login-layout hidden">
+          <div class="login-story">
+            <div class="eyebrow"><span class="eyebrow-dot"></span> DOUBLE-ENTRY BY DESIGN</div>
+            <h1>Money moves.<br><span>The books stay.</span></h1>
+            <p>Every rupee accounted for. Every decision on record. A ledger built to hold up when it matters.</p>
+            <div class="login-proof"><span class="proof-icon">↔</span><span><strong>One request, one result.</strong><small>Protected against duplicate payments.</small></span></div>
+            <div class="login-proof"><span class="proof-icon">≋</span><span><strong>Every posting has a pair.</strong><small>Debits and credits always net to zero.</small></span></div>
+          </div>
+          <form id="login-form" class="login-card">
+            <div class="eyebrow">WELCOME BACK</div>
+            <h2>Sign in to LedgerLine</h2>
+            <p class="form-intro">Use a demo account to explore the ledger.</p>
+            <label for="username">Username</label>
+            <input id="username" name="username" autocomplete="username" required>
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" autocomplete="current-password" required>
+            <button class="button button-primary full-button" type="submit">Sign in <span>→</span></button>
+            <p class="login-note">Demo credentials are in the project README.</p>
+            <p id="login-error" class="inline-error" role="alert"></p>
+          </form>
+        </section>
+
+        <div id="application" class="hidden">
+          <section id="overview-view" class="view-panel">
+            <div class="page-heading">
+              <div><div class="eyebrow"><span class="eyebrow-dot"></span> YOUR FINANCIAL CONTROL ROOM</div><h1>Good day, <span id="greeting-name">there</span>.</h1><p>A clear view of where every rupee stands.</p></div>
+              <button class="button button-primary" data-open-transfer>＋ <span>Move money</span></button>
+            </div>
+            <div class="summary-grid">
+              <article class="summary-card balance-card">
+                <div class="card-label">TOTAL ACCOUNT BALANCE <span class="card-symbol">₹</span></div>
+                <div class="balance-amount" id="total-balance">₹0.00</div>
+                <div class="card-foot"><span class="status-pill"><span class="tiny-dot"></span> Live balance</span><span id="account-total-label">Across 0 accounts</span></div>
+                <div class="balance-decoration" aria-hidden="true">₹</div>
+              </article>
+              <article class="summary-card small-summary">
+                <div class="card-label">ACCOUNTS <span class="card-symbol">▤</span></div>
+                <div class="metric-value" id="account-count">0</div>
+                <div class="metric-caption">Active accounts</div>
+              </article>
+              <article class="summary-card small-summary">
+                <div class="card-label">MOVEMENTS <span class="card-symbol">↗</span></div>
+                <div class="metric-value" id="movement-count">0</div>
+                <div class="metric-caption">Recorded requests</div>
+              </article>
+            </div>
+            <div class="section-heading"><div><h2>Your accounts</h2><p>Balances are protected at the database level.</p></div><button class="text-button" data-view="accounts">View all accounts <span>→</span></button></div>
+            <div id="overview-accounts" class="account-grid"></div>
+            <div class="bottom-grid">
+              <section class="content-card recent-card">
+                <div class="section-heading compact"><div><h2>Recent activity</h2><p>The latest ledger entries</p></div><button class="text-button" data-view="activity">All activity →</button></div>
+                <div id="recent-activity" class="activity-list"></div>
+              </section>
+              <aside class="integrity-card">
+                <div class="integrity-icon">✓</div><div class="eyebrow">THE LEDGER PROMISE</div>
+                <h3>Nothing disappears.<br>Nothing doubles.</h3>
+                <p>Every movement posts an equal debit and credit in a single database transaction.</p>
+                <div class="integrity-metric"><span>Double-entry balance</span><strong>Verified</strong></div>
+                <div class="integrity-metric"><span>Ledger history</span><strong>Append-only</strong></div>
+              </aside>
+            </div>
+          </section>
+
+          <section id="accounts-view" class="view-panel hidden">
+            <div class="page-heading"><div><div class="eyebrow"><span class="eyebrow-dot"></span> ACCOUNT DIRECTORY</div><h1>Accounts</h1><p>Open an account to see its complete running statement.</p></div><div class="heading-actions"><button id="create-user-open" class="button button-quiet hidden">＋ <span>New user</span></button><button id="create-account-open" class="button button-primary">＋ <span>New account</span></button></div></div>
+            <form id="create-user-form" class="content-card inline-form hidden">
+              <div><h2>Create a user</h2><p>Only administrators can grant roles. New passwords must be at least 14 characters.</p></div>
+              <label>Full name<input name="displayName" minlength="2" maxlength="80" required></label>
+              <label>Username<input name="username" minlength="3" maxlength="32" required></label>
+              <label>Temporary password<input name="password" type="password" minlength="14" autocomplete="new-password" required></label>
+              <label>Role<select name="role"><option value="account_holder">Account holder</option><option value="auditor">Auditor · read only</option></select></label>
+              <button class="button button-primary" type="submit">Create user</button>
+              <button class="button button-quiet" id="create-user-cancel" type="button">Cancel</button>
+            </form>
+            <div id="accounts-list" class="account-grid"></div>
+            <form id="create-account-form" class="content-card inline-form hidden">
+              <div><h2>Open an account</h2><p>New accounts always start at ₹0.00.</p></div>
+              <label>Account name<input name="name" minlength="2" maxlength="80" placeholder="e.g. Travel fund" required></label>
+              <label class="admin-field hidden">Account holder<select name="ownerUserId" id="account-owner"></select></label>
+              <button class="button button-primary" type="submit">Create account</button>
+              <button class="button button-quiet" id="create-account-cancel" type="button">Cancel</button>
+            </form>
+            <section id="statement-panel" class="content-card statement-card hidden">
+              <div class="section-heading compact"><div><div class="eyebrow">ACCOUNT STATEMENT</div><h2 id="statement-title"></h2><p id="statement-balance"></p></div><button id="close-statement" class="button button-quiet">Close</button></div>
+              <div class="table-wrap"><table><thead><tr><th>ENTRY</th><th>DESCRIPTION</th><th>INITIATED BY</th><th>DATE</th><th>AMOUNT</th><th>RUNNING BALANCE</th></tr></thead><tbody id="statement-rows"></tbody></table></div>
+            </section>
+          </section>
+
+          <section id="activity-view" class="view-panel hidden">
+            <div class="page-heading"><div><div class="eyebrow"><span class="eyebrow-dot"></span> MOVEMENT REGISTER</div><h1>Activity</h1><p>Every successful and refused request, tied to its initiator.</p></div></div>
+            <section class="content-card"><div class="table-wrap"><table><thead><tr><th>STATUS</th><th>TYPE</th><th>AMOUNT</th><th>FROM → TO</th><th>INITIATED BY</th><th>IDEMPOTENCY</th><th>DATE</th></tr></thead><tbody id="activity-rows"></tbody></table></div></section>
+          </section>
+
+          <section id="audit-view" class="view-panel hidden">
+            <div class="page-heading"><div><div class="eyebrow"><span class="eyebrow-dot"></span> IMMUTABLE EVENT HISTORY</div><h1>Audit trail</h1><p>Sign-ins, account changes, refused movements and idempotency replays.</p></div></div>
+            <section class="content-card"><div class="table-wrap"><table><thead><tr><th>EVENT</th><th>ACTOR</th><th>RESOURCE</th><th>DETAILS</th><th>DATE</th></tr></thead><tbody id="audit-rows"></tbody></table></div></section>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <dialog id="movement-dialog" class="movement-dialog">
+      <form method="dialog" class="dialog-close-form"><button class="icon-button close-dialog" aria-label="Close">×</button></form>
+      <div class="eyebrow"><span class="eyebrow-dot"></span> VERIFIED MOVEMENT</div>
+      <h2>Move money</h2><p class="form-intro">Your request is checked and posted atomically.</p>
+      <div class="movement-tabs" role="group" aria-label="Movement type">
+        <button type="button" class="movement-tab active" data-type="transfer">Transfer</button>
+        <button type="button" class="movement-tab" data-type="deposit">Deposit</button>
+        <button type="button" class="movement-tab" data-type="withdrawal">Withdraw</button>
+      </div>
+      <form id="movement-form">
+        <input type="hidden" name="type" value="transfer">
+        <label id="source-label">From account<select name="fromAccountId" id="movement-source"></select></label>
+        <label id="destination-label">To account<select name="toAccountId" id="movement-destination"></select></label>
+        <label>Amount (₹)<input name="amount" inputmode="decimal" placeholder="0.00" autocomplete="off" required></label>
+        <label>Note <span class="optional">(optional)</span><input name="description" maxlength="120" placeholder="What's this for?"></label>
+        <div class="movement-notice"><span>⌑</span> Server-side balance checks · Single-use request key</div>
+        <p id="movement-error" class="inline-error" role="alert"></p>
+        <button class="button button-primary full-button" type="submit">Review &amp; post <span>→</span></button>
+      </form>
+    </dialog>
+  </body>
+</html>
