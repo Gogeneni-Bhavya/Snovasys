@@ -95,9 +95,11 @@ Tests use temporary SQLite data and start two independent Node server processes 
 - AI-assistance log: [PROMPTS.md](./PROMPTS.md)
 - Five-minute walkthrough outline: [DEMO_SCRIPT.md](./DEMO_SCRIPT.md)
 
-The UI runs locally; no public live deployment or demo video has been created by this project setup. For a live demo, use a Node host with a persistent disk (for example, a single Render web service with a persistent disk). Do not use an ephemeral/serverless filesystem for the SQLite database. Keep TLS enabled, keep the SQLite file on the persistent disk, and do not scale multiple replicas unless they share a filesystem with SQLite-compatible locking.
+The [Render Blueprint](./render.yaml) configures a single Node web service with a persistent disk for SQLite, production cookies, demo seeding disabled, and a generated bootstrap-admin password. Render's persistent disk requires a paid service plan. The public URL opens to the login page; this deployment does not expose demo accounts or provide public visitor credentials. Share the generated administrator password only through a private channel if the team needs to sign in.
 
-For a production-style first run, set:
+To publish it, push this project to a GitHub repository connected to Render, choose **New → Blueprint**, select the repository, and apply the `render.yaml` configuration. When deployment completes, copy the service's `onrender.com` URL and verify that the page loads and `<your-service-url>/health` returns `{"ok":true}`. Keep the SQLite file on the persistent disk and run only one service instance; do not scale multiple replicas unless they share a filesystem with SQLite-compatible locking.
+
+The equivalent production environment is:
 
 ```text
 NODE_ENV=production
@@ -108,10 +110,10 @@ BOOTSTRAP_ADMIN_PASSWORD=a-unique-password-at-least-14-characters
 SEED_DEMO=false
 ```
 
-Then start with `node server.js`. Demo accounts are not seeded in production by default. Sign in as the bootstrapped administrator and create account holders and auditors. Configure the host's persistent disk at the `DB_PATH` location and terminate TLS at the host. Back up the database securely. **This is a challenge/demo application, not a production banking system**: it has no bank integration, MFA, password reset, external tamper-evident storage, or operational compliance controls.
+Demo accounts are not seeded in production by default. Sign in as the bootstrapped administrator and create account holders and auditors. Configure the host's persistent disk at the `DB_PATH` location and terminate TLS at the host. Back up the database securely. **This is a challenge/demo application, not a production banking system**: it has no bank integration, MFA, password reset, external tamper-evident storage, or operational compliance controls.
 
 ## Challenge-submission notes
 
 Keep your own dated work and actual commit history as you build, and update `PROMPTS.md` with what you asked, what was wrong, what you changed, and the real commit reference. This folder was not initialized as a Git repository, so no commits or public repository were created for you. Do not backdate or invent commits. Keep the repository private until the challenge permits publication. Review and explain every part of the code yourself before presenting it; AI assistance must be disclosed honestly.
 
-The challenge also asks for a live URL, a five-minute demo video, and a short personal write-up. None can be truthfully claimed as complete until you deploy, record, and write those yourself.
+The challenge also asks for a live URL, a five-minute demo video, and a short personal write-up. A deployment blueprint is provided, but the live URL is not complete until you deploy it; record and write the other deliverables yourself.
